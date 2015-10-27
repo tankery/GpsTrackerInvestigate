@@ -1,0 +1,7 @@
+<resources>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="text.trace.speed">速度 %.1f m/s</string>
+    <string name="text.trace.distance">距离 %.1f m</string>
+</resources>

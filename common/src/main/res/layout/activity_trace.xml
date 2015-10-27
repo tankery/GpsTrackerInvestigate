@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".TraceActivity"
+    >
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        >
+
+        <FrameLayout
+            android:id="@+id/layout_map_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
+
+        <TextView
+            android:id="@+id/text_count_down"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:textSize="72sp"
+            android:textColor="@android:color/holo_red_light"
+            android:visibility="gone"
+            tools:text="0"
+            tools:visibility="visible"
+            />
+
+        <LinearLayout
+            android:id="@+id/layout_output"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:orientation="horizontal"
+            android:background="#ccfafafa"
+            >
+
+            <TextView
+                android:id="@+id/trace_speed"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/text.trace.speed"
+                android:textSize="20sp" />
+
+            <Chronometer
+                android:id="@+id/trace_timer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="00:00:00"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/trace_distance"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:text="@string/text.trace.distance"
+                android:textSize="20sp" />
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        >
+
+        <Button
+            android:id="@+id/btn_trace_start"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="开始" />
+
+        <Button
+            android:id="@+id/btn_trace_stop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="结束"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+</LinearLayout>
