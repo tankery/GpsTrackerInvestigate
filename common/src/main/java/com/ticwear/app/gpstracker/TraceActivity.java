@@ -24,6 +24,7 @@ abstract public class TraceActivity extends Activity {
     TextView textCountDown;
 
     TextView textTraceSpeed;
+    TextView textTraceGps;
     Chronometer chronometerTrace;
     TextView textTraceDistance;
 
@@ -47,6 +48,7 @@ abstract public class TraceActivity extends Activity {
         textCountDown = (TextView) findViewById(R.id.text_count_down);
 
         textTraceSpeed = (TextView) findViewById(R.id.trace_speed);
+        textTraceGps = (TextView) findViewById(R.id.trace_gps);
         chronometerTrace = (Chronometer) findViewById(R.id.trace_timer);
         textTraceDistance = (TextView) findViewById(R.id.trace_distance);
 
@@ -55,6 +57,8 @@ abstract public class TraceActivity extends Activity {
 
         addMapInto(layoutMapContainer);
         updateButtons();
+
+        initChronometer();
 
 
         btnTraceStart.setOnClickListener(new View.OnClickListener() {
@@ -98,12 +102,15 @@ abstract public class TraceActivity extends Activity {
             // Show speed
             textTraceSpeed.setText(getString(R.string.text_trace_speed, tracePoint.speed));
 
+            // Show Gps status
+            textTraceGps.setText(tracePoint.gpsStrength);
+
             // Show distance.
             distance = getCurrentDistance(tracePoint);
             textTraceDistance.setText(getString(R.string.text_trace_distance, distance));
 
             // TODO: make a path curve, instead of single point.
-            if (tracePointList.size() > 3) {
+            if (tracePointList.size() >= 3) {
                 addTrace(tracePointList.subList(tracePointList.size() - 3, tracePointList.size()));
             }
         }
@@ -152,6 +159,9 @@ abstract public class TraceActivity extends Activity {
         textCountDown.setVisibility(View.GONE);
         totalTime = 0;
         startTrace(tracePointList.get(0));
+        if (tracePointList.size() >= 2) {
+            addTrace(new ArrayList<>(tracePointList));
+        }
     }
 
     private void onTraceEnd() {
@@ -233,6 +243,7 @@ abstract public class TraceActivity extends Activity {
         TracePoint lastPoint = tracePointList.get(tracePointList.size() - 1);
         if (tracePointList.isEmpty())
             lastPoint = tracePoint;
+
         double diff = DistanceUtil.GetShortDistance(
                 lastPoint.longitude, lastPoint.latitude,
                 tracePoint.longitude, tracePoint.latitude);

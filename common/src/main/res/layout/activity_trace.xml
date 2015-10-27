@@ -43,29 +43,39 @@
 
             <TextView
                 android:id="@+id/trace_speed"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/text.trace.speed"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
 
-            <Chronometer
-                android:id="@+id/trace_timer"
-                android:layout_width="0dp"
+            <TextView
+                android:id="@+id/trace_gps"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center"
-                android:text="00:00:00"
-                android:textSize="20sp" />
+                android:text="@string/text.trace.gps"
+                android:textSize="16sp" />
+
+            <Chronometer
+                android:id="@+id/trace_timer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                tools:text="00:00:00"
+                android:textSize="16sp"
+                />
 
             <TextView
                 android:id="@+id/trace_distance"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="end"
                 android:text="@string/text.trace.distance"
-                android:textSize="20sp" />
+                android:textSize="16sp" />
         </LinearLayout>
 
     </RelativeLayout>

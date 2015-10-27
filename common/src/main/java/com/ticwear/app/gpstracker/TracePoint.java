@@ -13,4 +13,6 @@ public class TracePoint {
     public double distance; // in meter
     public double speed;    // in m/s
 
+    public String gpsStrength;
+
 }

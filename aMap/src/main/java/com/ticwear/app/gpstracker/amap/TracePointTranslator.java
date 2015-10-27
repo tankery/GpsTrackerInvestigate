@@ -17,6 +17,7 @@ public class TracePointTranslator {
         point.latitude = location.getLatitude();
         point.longitude = location.getLongitude();
         point.speed = location.getSpeed();
+        point.gpsStrength = String.format("%s, %.1f", location.getProvider(), location.getAccuracy());
 
         return point;
     }
