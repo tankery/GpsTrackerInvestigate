@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationListener;
 import com.amap.api.location.LocationManagerProxy;
-import com.amap.api.location.LocationProviderProxy;
 import com.amap.api.maps2d.AMap;
 import com.amap.api.maps2d.LocationSource;
 import com.amap.api.maps2d.MapView;
@@ -95,7 +94,8 @@ public class MainActivity extends TraceActivity implements AMapLocationListener,
         // 开启定位图层
         aMap.setMyLocationEnabled(true);
 
-        drawStart(endpoint);
+        if (!endpoint.isEmpty())
+            drawStart(endpoint);
     }
 
     @Override
@@ -105,14 +105,16 @@ public class MainActivity extends TraceActivity implements AMapLocationListener,
         // 关闭定位图层+
         aMap.setMyLocationEnabled(false);
 
-        drawEnd(endpoint);
+        if (!endpoint.isEmpty())
+            drawEnd(endpoint);
     }
 
     @Override
     protected void addTrace(List<TracePoint> tracePoints) {
         pointsToDraw.clear();
         for (TracePoint point : tracePoints) {
-            pointsToDraw.add(TracePointTranslator.getPoint(point));
+            if (!point.isEmpty())
+                pointsToDraw.add(TracePointTranslator.getPoint(point));
         }
         PolylineOptions options = new PolylineOptions()
                 .color(0xAAFF0000)
@@ -188,7 +190,7 @@ public class MainActivity extends TraceActivity implements AMapLocationListener,
          * ，第一个参数是定位provider，第二个参数时间最短是2000毫秒，第三个参数距离间隔单位是米，第四个参数是定位监听者
          */
         aMapLocManager.requestLocationData(
-                LocationProviderProxy.AMapNetwork, SCAN_SPAN, 10, this);
+                LocationManagerProxy.GPS_PROVIDER, SCAN_SPAN, 10, this);
         aMapLocManager.setGpsEnable(true);
     }
 

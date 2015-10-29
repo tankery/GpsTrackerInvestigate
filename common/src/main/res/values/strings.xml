@@ -4,5 +4,5 @@
 
     <string name="text.trace.speed">%.1fkm/h</string>
     <string name="text.trace.distance">%.1fkm</string>
-    <string name="text.trace.gps">GPS:%s</string>
+    <string name="text.trace.gps">GPS:%.1f</string>
 </resources>

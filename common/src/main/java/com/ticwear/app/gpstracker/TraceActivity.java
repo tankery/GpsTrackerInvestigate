@@ -20,6 +20,8 @@ abstract public class TraceActivity extends Activity {
     public static final long SCAN_SPAN = 1000l;
     public static final long ALIVE_CHECK = 3000l;
 
+    public static final double SMALLEST_LAT_LNG = 0.001;
+
     ViewGroup layoutMapContainer;
     TextView textCountDown;
 
@@ -97,13 +99,16 @@ abstract public class TraceActivity extends Activity {
      * @param tracePoint the new raw point from SDK.
      */
     protected void addRawTracePoint(TracePoint tracePoint) {
+        if (tracePoint.isEmpty() || (tracePoint.latitude < SMALLEST_LAT_LNG && tracePoint.longitude < SMALLEST_LAT_LNG))
+            return;
+
         tracePointList.add(tracePoint);
         if (isStarting) {
             // Show speed
             textTraceSpeed.setText(getString(R.string.text_trace_speed, tracePoint.speed));
 
             // Show Gps status
-            textTraceGps.setText(tracePoint.gpsStrength);
+            textTraceGps.setText(getString(R.string.text_trace_gps, tracePoint.accuracy));
 
             // Show distance.
             distance = getCurrentDistance(tracePoint);
@@ -169,9 +174,11 @@ abstract public class TraceActivity extends Activity {
         isStarting = false;
 
         textCountDown.setVisibility(View.GONE);
+        TracePoint endPoint = new TracePoint();
         if (!tracePointList.isEmpty()) {
-            stopTrace(tracePointList.get(tracePointList.size() - 1));
+            endPoint = tracePointList.get(tracePointList.size() - 1);
         }
+        stopTrace(endPoint);
     }
 
     private Runnable createCountDownRunnable() {

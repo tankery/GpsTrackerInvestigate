@@ -97,7 +97,8 @@ public class MainActivity extends TraceActivity implements BDLocationListener {
         MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(ll);
         baiduMap.animateMapStatus(u);
 
-        drawStart(endpoint);
+        if (!endpoint.isEmpty())
+            drawStart(endpoint);
     }
 
     @Override
@@ -111,14 +112,16 @@ public class MainActivity extends TraceActivity implements BDLocationListener {
 
         handler.removeCallbacks(activeCheckRunnable);
 
-        drawEnd(endpoint);
+        if (!endpoint.isEmpty())
+            drawEnd(endpoint);
     }
 
     @Override
     protected void addTrace(List<TracePoint> tracePoints) {
         pointsToDraw.clear();
         for (TracePoint point : tracePoints) {
-            pointsToDraw.add(TracePointTranslator.getPoint(point));
+            if (!point.isEmpty())
+                pointsToDraw.add(TracePointTranslator.getPoint(point));
         }
         OverlayOptions options = new PolylineOptions()
                 .color(0xAAFF0000)
@@ -160,10 +163,12 @@ public class MainActivity extends TraceActivity implements BDLocationListener {
         option.setOpenGps(true);// 打开gps
         option.setCoorType("bd09ll"); // 设置坐标类型
         option.setScanSpan((int) SCAN_SPAN);
+        option.disableCache(true);
+        option.setIsNeedAddress(false);
 
         // 设置定位方式的优先级。
         // 当gps可用，而且获取了定位结果时，不再发起网络请求，直接返回给用户坐标。这个选项适合希望得到准确坐标位置的用户。如果gps不可用，再发起网络请求，进行定位。
-        option.setPriority(LocationClientOption.GpsFirst);
+        option.setPriority(LocationClientOption.GpsOnly);
         // option.setPriority(LocationClientOption.NetWorkFirst);
         client.setLocOption(option);
 

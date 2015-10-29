@@ -13,6 +13,16 @@ public class TracePoint {
     public double distance; // in meter
     public double speed;    // in m/s
 
-    public String gpsStrength;
+    public float accuracy;
+
+    public TracePoint() {
+        longitude = 0;
+        latitude = 0;
+        accuracy = -1;
+    }
+
+    public boolean isEmpty() {
+        return accuracy == -1;
+    }
 
 }

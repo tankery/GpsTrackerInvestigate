@@ -1,6 +1,7 @@
 package com.ticwear.app.gpstracker.amap;
 
 import com.amap.api.location.AMapLocation;
+import com.amap.api.location.LocationManagerProxy;
 import com.amap.api.maps2d.model.LatLng;
 import com.ticwear.app.gpstracker.TracePoint;
 
@@ -14,10 +15,12 @@ public class TracePointTranslator {
     public static TracePoint from(AMapLocation location) {
         TracePoint point = new TracePoint();
 
-        point.latitude = location.getLatitude();
-        point.longitude = location.getLongitude();
-        point.speed = location.getSpeed();
-        point.gpsStrength = String.format("%s, %.1f", location.getProvider(), location.getAccuracy());
+        if (LocationManagerProxy.GPS_PROVIDER.equals(location.getProvider())) {
+            point.latitude = location.getLatitude();
+            point.longitude = location.getLongitude();
+            point.speed = location.getSpeed();
+            point.accuracy = location.getAccuracy();
+        }
 
         return point;
     }
