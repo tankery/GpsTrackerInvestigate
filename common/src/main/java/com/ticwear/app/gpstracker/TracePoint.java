@@ -25,4 +25,6 @@ public class TracePoint {
         return accuracy == -1;
     }
 
+    public boolean isValid() { return accuracy > 0; }
+
 }

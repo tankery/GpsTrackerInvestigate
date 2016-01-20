@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="health.base.blue.light">#1fbbea</color>
+    <color name="health.base.blue.dark">#0087ff</color>
+</resources>

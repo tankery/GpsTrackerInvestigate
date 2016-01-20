@@ -76,10 +76,17 @@ public class MainActivity extends TraceActivity implements AMapLocationListener,
     }
 
     @Override
-    protected void addMapInto(ViewGroup parent) {
+    protected void addMapInto(final ViewGroup parent) {
         mapView = new MapView(this);
         parent.addView(mapView);
         aMap = mapView.getMap();
+
+        aMap.setOnMapLongClickListener(new AMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+                addLogListViewInto(parent);
+            }
+        });
     }
 
     @Override
@@ -158,6 +165,9 @@ public class MainActivity extends TraceActivity implements AMapLocationListener,
         addRawTracePoint(tracePoint);
     }
 
+    @Override
+    protected void onSnapshot() {
+    }
 
     @Override
     public void activate(OnLocationChangedListener onLocationChangedListener) {

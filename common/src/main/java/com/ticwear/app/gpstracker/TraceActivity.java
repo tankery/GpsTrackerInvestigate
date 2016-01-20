@@ -1,13 +1,21 @@
 package com.ticwear.app.gpstracker;
 
 import android.app.Activity;
+import android.app.Dialog;
+import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Chronometer;
+import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.ticwear.app.gpstracker.utils.DistanceUtil;
@@ -16,6 +24,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 abstract public class TraceActivity extends Activity {
+
+    private static class LogAdapter extends ArrayAdapter<String> {
+
+        public LogAdapter(Context context, int resource, int textViewResourceId) {
+            super(context, resource, textViewResourceId);
+        }
+    }
 
     public static final long SCAN_SPAN = 1000l;
     public static final long ALIVE_CHECK = 3000l;
@@ -30,8 +45,12 @@ abstract public class TraceActivity extends Activity {
     Chronometer chronometerTrace;
     TextView textTraceDistance;
 
+    ListView listLog;
+    LogAdapter logAdapter;
+
     Button btnTraceStart;
     Button btnTraceStop;
+    Button btnSnapshot;
 
     private Handler uiHandler = new Handler();
 
@@ -46,6 +65,8 @@ abstract public class TraceActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_trace);
 
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         layoutMapContainer = (ViewGroup) findViewById(R.id.layout_map_container);
         textCountDown = (TextView) findViewById(R.id.text_count_down);
 
@@ -56,6 +77,15 @@ abstract public class TraceActivity extends Activity {
 
         btnTraceStart = (Button) findViewById(R.id.btn_trace_start);
         btnTraceStop = (Button) findViewById(R.id.btn_trace_stop);
+        btnSnapshot = (Button) findViewById(R.id.btn_snapshot);
+        btnSnapshot.setVisibility(View.GONE);
+        btnSnapshot.setEnabled(false);
+
+        logAdapter = new LogAdapter(
+                this,
+                R.layout.list_log_item,
+                R.id.text
+        );
 
         addMapInto(layoutMapContainer);
         updateButtons();
@@ -77,6 +107,19 @@ abstract public class TraceActivity extends Activity {
                 updateButtons();
             }
         });
+
+        btnSnapshot.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onSnapshot();
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        super.onDestroy();
     }
 
     abstract protected void addMapInto(ViewGroup parent);
@@ -93,12 +136,16 @@ abstract public class TraceActivity extends Activity {
     abstract protected void stopTrace(TracePoint endpoint);
     abstract protected void addTrace(List<TracePoint> tracePoints);
 
+    abstract protected void onSnapshot();
+
     /**
      * This method can be called after prepare & before stop.
      * When receive a new location from SDK, translate the point type and pass it in.
      * @param tracePoint the new raw point from SDK.
      */
     protected void addRawTracePoint(TracePoint tracePoint) {
+        addLog(String.format("Point (%f, %f), %f", tracePoint.latitude, tracePoint.longitude, tracePoint.accuracy));
+
         if (tracePoint.isEmpty() || (tracePoint.latitude < SMALLEST_LAT_LNG && tracePoint.longitude < SMALLEST_LAT_LNG))
             return;
 
@@ -121,7 +168,56 @@ abstract public class TraceActivity extends Activity {
         }
     }
 
+    protected void onMapPrepared() {
+        addLog("Map prepared");
+        btnSnapshot.setEnabled(true);
+        // onSnapshot();
+    }
 
+    protected void showSnapshot(Bitmap bitmap) {
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_snapshot_image);
+        ImageView imgView=(ImageView)dialog.findViewById(R.id.image_snapshot);
+        imgView.setImageBitmap(bitmap);
+        dialog.show();
+    }
+
+    protected void addLog(String log) {
+        logAdapter.add(log);
+        if (listLog != null) {
+            listLog.smoothScrollToPosition(listLog.getCount() - 1);
+        }
+    }
+
+
+    protected void removeLogListView() {
+        if (listLog == null) {
+            return;
+        }
+
+        listLog.setAdapter(null);
+        ((ViewGroup) listLog.getParent()).removeView(listLog);
+        listLog = null;
+    }
+
+    protected void addLogListViewInto(ViewGroup parent) {
+        if (listLog != null) {
+            return;
+        }
+
+        listLog = (ListView) getLayoutInflater().inflate(R.layout.list_log, parent, false);
+        parent.addView(listLog);
+        listLog.setAdapter(logAdapter);
+
+        listLog.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                removeLogListView();
+            }
+        });
+
+        addLog("Start logging...");
+    }
 
     /**
      * 初始化计时器

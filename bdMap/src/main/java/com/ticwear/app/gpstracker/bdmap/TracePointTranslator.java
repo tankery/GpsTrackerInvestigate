@@ -11,10 +11,12 @@ import com.ticwear.app.gpstracker.TracePoint;
  */
 public class TracePointTranslator {
 
+    public static boolean ONLY_GPS_POINT = true;
+
     public static TracePoint from(BDLocation location) {
         TracePoint point = new TracePoint();
 
-        if (location.getLocType() == BDLocation.TypeGpsLocation) {
+        if (!ONLY_GPS_POINT || location.getLocType() == BDLocation.TypeGpsLocation) {
             point.latitude = location.getLatitude();
             point.longitude = location.getLongitude();
             point.speed = location.getSpeed();

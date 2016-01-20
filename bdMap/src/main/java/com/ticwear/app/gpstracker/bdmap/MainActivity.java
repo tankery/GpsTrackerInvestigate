@@ -1,5 +1,6 @@
 package com.ticwear.app.gpstracker.bdmap;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -12,6 +13,7 @@ import com.baidu.location.LocationClientOption;
 import com.baidu.location.Poi;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.DotOptions;
+import com.baidu.mapapi.map.MapStatus;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
@@ -19,11 +21,14 @@ import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.map.PolylineOptions;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.model.LatLngBounds;
 import com.ticwear.app.gpstracker.TraceActivity;
 import com.ticwear.app.gpstracker.TracePoint;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.microedition.khronos.opengles.GL10;
 
 public class MainActivity extends TraceActivity implements BDLocationListener {
 
@@ -39,11 +44,19 @@ public class MainActivity extends TraceActivity implements BDLocationListener {
     // 定时器相关，定时检查GPS是否开启（这里只须检查mLocationClient是否启动）
     Handler handler = new Handler();
 
+    boolean mapPrepared = false;
+
     List<LatLng> pointsToDraw = new ArrayList<>();
+
+    List<TracePoint> pointsToLoc = new ArrayList<>();
+    MapOverlayHelper mapOverlayHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mapPrepared = false;
+        mapOverlayHelper = new MapOverlayHelper(this);
 
         if (locationClient == null) {
             locationClient = initLocation();
@@ -64,16 +77,86 @@ public class MainActivity extends TraceActivity implements BDLocationListener {
 
     @Override
     protected void onDestroy() {
+        stopPrepareCheck();
         mapView.onDestroy();
         mapView = null;
         super.onDestroy();
     }
 
     @Override
-    protected void addMapInto(ViewGroup parent) {
+    protected void addMapInto(final ViewGroup parent) {
         mapView = new MapView(this);
         parent.addView(mapView);
         baiduMap = mapView.getMap();
+
+        baiduMap.setOnMapStatusChangeListener(new BaiduMap.OnMapStatusChangeListener() {
+            @Override
+            public void onMapStatusChangeStart(MapStatus mapStatus) {
+                Log.i(LOG_TAG, "onMapStatusChangeStart");
+            }
+
+            @Override
+            public void onMapStatusChange(MapStatus mapStatus) {
+                Log.i(LOG_TAG, "onMapStatusChange");
+            }
+
+            @Override
+            public void onMapStatusChangeFinish(MapStatus mapStatus) {
+                Log.i(LOG_TAG, "onMapStatusChangeFinish");
+            }
+        });
+
+        baiduMap.setOnMapDrawFrameCallback(new BaiduMap.OnMapDrawFrameCallback() {
+            @Override
+            public void onMapDrawFrame(GL10 gl10, MapStatus mapStatus) {
+                Log.i(LOG_TAG, "Draw frame");
+                // After 1s we have no frame to draw, we are prepared.
+                startPrepareCheck();
+            }
+        });
+
+        baiduMap.setOnMapLoadedCallback(new BaiduMap.OnMapLoadedCallback() {
+            @Override
+            public void onMapLoaded() {
+                insertPoints();
+            }
+        });
+
+        baiduMap.setOnMapLongClickListener(new BaiduMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+                addLogListViewInto(parent);
+            }
+        });
+    }
+
+    private void insertPoints() {
+        LatLngBounds bounds = new LatLngBounds.Builder()
+                .include(new LatLng(39.99058266825883, 116.31640582783675))
+                .include(new LatLng(39.99112350066009, 116.31749592279279))
+                .build();
+        MapStatusUpdate statusUpdate = MapStatusUpdateFactory.newLatLngBounds(bounds);
+        baiduMap.animateMapStatus(statusUpdate);
+    }
+
+    Runnable mapPreparedRunnable = new Runnable() {
+        @Override
+        public void run() {
+            stopPrepareCheck();
+            mapPrepared = true;
+            onMapPrepared();
+        }
+    };
+
+    private void startPrepareCheck() {
+        stopPrepareCheck();
+        if (!mapPrepared) {
+            mapView.postDelayed(mapPreparedRunnable, 1000);
+        }
+    }
+
+    private void stopPrepareCheck() {
+        mapView.removeCallbacks(mapPreparedRunnable);
     }
 
     @Override
@@ -87,6 +170,8 @@ public class MainActivity extends TraceActivity implements BDLocationListener {
             locationClient.start();
         }
         baiduMap.clear();
+
+        pointsToLoc.clear();
     }
 
     @Override
@@ -99,6 +184,8 @@ public class MainActivity extends TraceActivity implements BDLocationListener {
 
         if (!endpoint.isEmpty())
             drawStart(endpoint);
+
+        pointsToLoc.add(endpoint);
     }
 
     @Override
@@ -114,6 +201,8 @@ public class MainActivity extends TraceActivity implements BDLocationListener {
 
         if (!endpoint.isEmpty())
             drawEnd(endpoint);
+
+        pointsToLoc.add(endpoint);
     }
 
     @Override
@@ -128,6 +217,9 @@ public class MainActivity extends TraceActivity implements BDLocationListener {
                 .width(6)
                 .points(pointsToDraw);
         baiduMap.addOverlay(options);
+
+        pointsToLoc.addAll(tracePoints);
+        mapOverlayHelper.updateOverlay(baiduMap, pointsToLoc, false);
     }
 
 
@@ -151,6 +243,16 @@ public class MainActivity extends TraceActivity implements BDLocationListener {
 
         TracePoint tracePoint = TracePointTranslator.from(location);
         addRawTracePoint(tracePoint);
+    }
+
+    @Override
+    protected void onSnapshot() {
+        baiduMap.snapshot(new BaiduMap.SnapshotReadyCallback() {
+            @Override
+            public void onSnapshotReady(Bitmap bitmap) {
+                showSnapshot(bitmap);
+            }
+        });
     }
 
 
