@@ -24,7 +24,7 @@ import java.util.List;
 
 public class MainActivity extends TraceActivity implements AMapLocationListener, LocationSource {
 
-    final static String LOG_TAG = "AMapTracer";
+    public static final String TAG = TraceActivity.TAG + "AMap";
 
     MapView mapView;
     AMap aMap;
@@ -252,7 +252,7 @@ public class MainActivity extends TraceActivity implements AMapLocationListener,
 
     private void logTheLocation(AMapLocation location) {
         if (location == null) {
-            Log.w(LOG_TAG, "No location data!");
+            Log.w(TAG, "No location data!");
             return;
         }
 
@@ -275,6 +275,6 @@ public class MainActivity extends TraceActivity implements AMapLocationListener,
                 + "\n区(县):" + location.getDistrict()
                 + "\n区域编码:" + location
                 .getAdCode());
-        Log.v(LOG_TAG, str);
+        Log.v(TAG, str);
     }
 }

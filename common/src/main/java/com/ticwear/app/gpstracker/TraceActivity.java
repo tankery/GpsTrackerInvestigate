@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -24,6 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 abstract public class TraceActivity extends Activity {
+
+    public static final String TAG = "GpsTracer";
 
     private static class LogAdapter extends ArrayAdapter<String> {
 
@@ -183,6 +186,7 @@ abstract public class TraceActivity extends Activity {
     }
 
     protected void addLog(String log) {
+        Log.d(TAG, log);
         logAdapter.add(log);
         if (listLog != null) {
             listLog.smoothScrollToPosition(listLog.getCount() - 1);

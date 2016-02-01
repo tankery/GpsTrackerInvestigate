@@ -32,7 +32,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class MainActivity extends TraceActivity implements BDLocationListener {
 
-    final static String LOG_TAG = "BaiduMapTracer";
+    public static final String TAG = TraceActivity.TAG + "Baidu";
 
     MapView mapView;
     BaiduMap baiduMap;
@@ -92,24 +92,24 @@ public class MainActivity extends TraceActivity implements BDLocationListener {
         baiduMap.setOnMapStatusChangeListener(new BaiduMap.OnMapStatusChangeListener() {
             @Override
             public void onMapStatusChangeStart(MapStatus mapStatus) {
-                Log.i(LOG_TAG, "onMapStatusChangeStart");
+                Log.d(TAG, "onMapStatusChangeStart");
             }
 
             @Override
             public void onMapStatusChange(MapStatus mapStatus) {
-                Log.i(LOG_TAG, "onMapStatusChange");
+                Log.v(TAG, "onMapStatusChange");
             }
 
             @Override
             public void onMapStatusChangeFinish(MapStatus mapStatus) {
-                Log.i(LOG_TAG, "onMapStatusChangeFinish");
+                Log.d(TAG, "onMapStatusChangeFinish");
             }
         });
 
         baiduMap.setOnMapDrawFrameCallback(new BaiduMap.OnMapDrawFrameCallback() {
             @Override
             public void onMapDrawFrame(GL10 gl10, MapStatus mapStatus) {
-                Log.i(LOG_TAG, "Draw frame");
+                Log.v(TAG, "Draw frame");
                 // After 1s we have no frame to draw, we are prepared.
                 startPrepareCheck();
             }
@@ -232,6 +232,10 @@ public class MainActivity extends TraceActivity implements BDLocationListener {
         if (location == null || mapView == null)
             return;
 
+        if (!isLocationValid(location)) {
+            return;
+        }
+
         // 如果不显示定位精度圈，将accuracy赋值为0即可
         MyLocationData locData = new MyLocationData.Builder()
                 .accuracy(location.getRadius())
@@ -239,10 +243,24 @@ public class MainActivity extends TraceActivity implements BDLocationListener {
                 .longitude(location.getLongitude())
                 .build();
 
+        Log.v(TAG, String.format("My location: (%f, %f), %f", location.getLatitude(), location.getLongitude(), location.getRadius()));
+
         baiduMap.setMyLocationData(locData);
+        baiduMap.setMyLocationEnabled(true);
+
+        if (!isStarting) {
+            LatLng lastPoint = new LatLng(location.getLatitude(), location.getLongitude());
+            MapStatusUpdate statusUpdate = MapStatusUpdateFactory.newLatLng(lastPoint);
+            baiduMap.animateMapStatus(statusUpdate);
+        }
 
         TracePoint tracePoint = TracePointTranslator.from(location);
         addRawTracePoint(tracePoint);
+    }
+
+    private boolean isLocationValid(BDLocation location) {
+        return location.getLocType() == BDLocation.TypeGpsLocation ||
+                location.getLocType() == BDLocation.TypeNetWorkLocation;
     }
 
     @Override
@@ -262,16 +280,15 @@ public class MainActivity extends TraceActivity implements BDLocationListener {
         LocationClient client = new LocationClient(this);
 
         LocationClientOption option = new LocationClientOption();
-        option.setOpenGps(true);// 打开gps
         option.setCoorType("bd09ll"); // 设置坐标类型
         option.setScanSpan((int) SCAN_SPAN);
-        option.disableCache(true);
-        option.setIsNeedAddress(false);
 
         // 设置定位方式的优先级。
         // 当gps可用，而且获取了定位结果时，不再发起网络请求，直接返回给用户坐标。这个选项适合希望得到准确坐标位置的用户。如果gps不可用，再发起网络请求，进行定位。
-        option.setPriority(LocationClientOption.GpsOnly);
-        // option.setPriority(LocationClientOption.NetWorkFirst);
+        option.setPriority(LocationClientOption.GpsFirst);
+        option.setIsNeedAddress(true);
+        option.setOpenGps(true);// 打开gps
+        option.disableCache(true);
         client.setLocOption(option);
 
         return client;
@@ -309,7 +326,7 @@ public class MainActivity extends TraceActivity implements BDLocationListener {
         @Override
         public void run() {
             if (!locationClient.isStarted()) {
-                Log.i(LOG_TAG, "Client not started, start it.");
+                Log.i(TAG, "Client not started, start it.");
                 locationClient.start();
             }
             if (!isStopLocClient) {
@@ -379,7 +396,7 @@ public class MainActivity extends TraceActivity implements BDLocationListener {
                 sb.append(p.getId() + " " + p.getName() + " " + p.getRank());
             }
         }
-        Log.v(LOG_TAG, sb.toString());
+        Log.v(TAG, sb.toString());
     }
 
 }
